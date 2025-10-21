@@ -1,3 +1,28 @@
+ let recipeObj2 = {
+    title: "N/A",
+    source: window.location.href,
+    servings: "N/A",
+    cooktime: "N/A",
+    ingredients: [],
+    instructions: [],
+    avedAt: new Date().toISOString()
+};
+
+    let Recipes = [];
+    let recipeString = localStorage.getItem("recipes");
+
+    //Loading saved leads in local storage to the extension UI
+    if(recipeString)
+    {
+        try{
+            Recipes = JSON.parse(recipeString);
+        }catch (e)
+        {
+            console.error("Failed to load saved leads:", e);
+        }
+        DisplayRecipe(Recipes);
+    }
+
 // This function will be injected and executed in the context of the web page.
 const scrapeRecipeFromPage = () => {
         //Recipe Object
@@ -54,7 +79,9 @@ btnget.addEventListener("click", async () => {
         if (injectionResults && injectionResults[0]) {
             const result = injectionResults[0].result;
             if (result.success) {
-                console.log("Recipe scraped:", result.data);
+                recipeObj2 = result.data;
+                Recipes.push(recipeObj2);
+                localStorage.setItem("recipes",JSON.stringify(Recipes));
                 DisplayRecipe(result.data);
             } else {
                 console.error("Scraping failed:", result.error);
@@ -104,11 +131,23 @@ const DisplayRecipe = (recipe) => {
     //Conatiner for instructions list
     const div = document.createElement("div");
     div.classList = "InstructionsDiv";
+    outText.appendChild(div);
 
     const InstLabel = document.createElement("h3");
     InstLabel.textContent = "Instructions :"
+    div.appendChild(InstLabel);
+
+    const InstUl = document.createElement("ul");
+    InstUl.classList= "Instructions";
+    div.appendChild(InstUl);
 
     //Creating the list for instructions
+    for(let i = 0; i < recipe.instructions.length; i++)
+    {
+        const outInstructions = document.createElement("li");
+        outInstructions.innerHTML = `<b>Step ${i+1}:</b> ${recipe.instructions[i]}`;
+        InstUl.appendChild(outInstructions);
+    }
 }
     
 

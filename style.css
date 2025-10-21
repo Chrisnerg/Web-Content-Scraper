@@ -52,3 +52,12 @@ button:hover{
     padding-left: 20px;          /* Adds some padding to move the list away from the edge */
 }
 
+.InstructionsDiv ul.Instructions {
+    list-style-type: none; /* Removes the bullet points */
+    padding-left: 0;      /* Removes the default padding/indentation */
+    margin-left: 0;       /* Removes the default margin/indentation */
+}
+
+.InstructionsDiv ul.Instructions li{
+    padding: 10px;
+}
