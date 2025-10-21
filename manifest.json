@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Recipe Scraper",
+  "version": "1.0",
+  "description": "A simple extension to scrape recipe details from a web page and save it to a document.",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  }
+}

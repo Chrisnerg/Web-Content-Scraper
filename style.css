@@ -1,0 +1,54 @@
+body{
+  font-family: "Nunito", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600 bold;
+  font-style: bold;
+  background-color: whitesmoke;
+  margin: 10px;
+  min-width: 600px;
+  padding: 10px;
+}
+
+#container{
+    width: 100%;
+}
+
+#btn{
+    text-align: center;
+}
+
+#header{
+    color:white;
+    box-sizing: border-box;
+    background-color: #585123;
+    text-align: center;
+}
+
+#btnScrape{
+    padding: 10px;
+    border-radius: 2px;
+    background-color: #585123;
+    color: white;
+}
+
+button:hover{
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+#recipe{
+    padding: 10px;
+    margin-top: 10px;
+}
+
+#recipe.active{
+     border: 5px solid;
+    min-width: 400px;
+    border-style: groove;
+}
+
+#recipe ul {
+    list-style-position: inside; /* Keeps the bullet point within the list item box */
+    padding-left: 20px;          /* Adds some padding to move the list away from the edge */
+}
+
