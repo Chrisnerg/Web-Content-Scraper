@@ -24,7 +24,7 @@ body{
     text-align: center;
 }
 
-#btnScrape,#btnDelete{
+#btnScrape,#btnDelete,#btnExport{
     padding: 10px;
     border-radius: 2px;
     background-color: #585123;

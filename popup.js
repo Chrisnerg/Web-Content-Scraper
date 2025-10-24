@@ -5,7 +5,7 @@
     cooktime: "N/A",
     ingredients: [],
     instructions: [],
-    avedAt: new Date().toISOString()
+    savedAt: new Date().toISOString()
 };
 
     let Recipes = [];
@@ -26,7 +26,6 @@ const scrapeRecipeFromPage = () => {
     try {
         recipeObj.title = document.querySelector(".tasty-recipes-title")?.textContent?.trim() ?? "N/A";
         recipeObj.cooktime = document.querySelector(".tasty-recipes-total-time")?.textContent?.trim() ?? "N/A";
-        //recipeObj.servings = document.querySelector(".label-header-detail servings").textContent.trim();
         const amountSpans = document.querySelectorAll('.tasty-recipes-yield span[data-amount]');
         const amounts = Array.from(amountSpans).map(span => span.dataset.amount);
         recipeObj.servings = amounts[0];
@@ -90,55 +89,6 @@ const DisplayRecipe = (recipe) => {
 
     // If we received an array of recipes, loop through each
     const recipes = Array.isArray(recipe) ? recipe : [recipe];
-    
-    // //Creating recipe title label
-    // const outTitle = document.createElement("h2");
-    // outTitle.classList = "recipeInfo";
-    // outTitle.textContent = recipe.title + " :";
-    
-    // //Creating Total Time to cook label
-    // const Time = document.createElement("h2");
-    // Time.textContent = `Total Time: ${recipe.cooktime}`;
-    // outText.appendChild(outTitle);
-    // outText.appendChild(Time);
-
-    // //Creating ingredients Label
-    // const Label = document.createElement("h3");
-    // Label.textContent = "Ingredients :"
-    // outText.appendChild(Label);
-
-    // const ulEl = document.createElement("ul");
-    // ulEl.classList= "Ingredients";
-    // outText.appendChild(ulEl);
-
-    // //createing list of ingredients and displaying 
-    // for(let i = 0; i < recipe.ingredients.length; i++)
-    // {
-    //     const outIngredients = document.createElement("li");
-    //     outIngredients.textContent = recipe.ingredients[i];
-    //     ulEl.appendChild(outIngredients);
-    // }
-
-    // //Conatiner for instructions list
-    // const div = document.createElement("div");
-    // div.classList = "InstructionsDiv";
-    // outText.appendChild(div);
-
-    // const InstLabel = document.createElement("h3");
-    // InstLabel.textContent = "Instructions :"
-    // div.appendChild(InstLabel);
-
-    // const InstUl = document.createElement("ul");
-    // InstUl.classList= "Instructions";
-    // div.appendChild(InstUl);
-
-    // //Creating the list for instructions
-    // for(let i = 0; i < recipe.instructions.length; i++)
-    // {
-    //     const outInstructions = document.createElement("li");
-    //     outInstructions.innerHTML = `<b>Step ${i+1}:</b> ${recipe.instructions[i]}`;
-    //     InstUl.appendChild(outInstructions);
-    // }
 
      recipes.forEach((recipe) => {
         // --- Recipe Container ---
@@ -194,7 +144,7 @@ const DisplayRecipe = (recipe) => {
     });
 }
     
-//Loading saved leads in local storage to the extension UI
+//Loading saved recipes in local storage to the extension UI
     if(recipeString)
     {
         try{
@@ -206,3 +156,107 @@ const DisplayRecipe = (recipe) => {
         }
         DisplayRecipe(Recipes);
     }
+
+//Clearing contents in the popup extension
+const btnClear = document.querySelector("#btnDelete");
+const outText = document.querySelector("#recipe");
+const InstText = document.querySelector("InstructionsDiv");
+btnClear.addEventListener("click", (e) => {
+    localStorage.removeItem("recipes");
+    Recipes = [];
+    if (outText) outText.innerHTML = "";
+    if (InstText) InstText.innerHTML = "";
+})
+
+//Creating File for the recipes saved
+btnExport.addEventListener('click', async () => {
+    const jsPDFCtor = window.jspdf?.jsPDF;
+    if (!jsPDFCtor) {
+        console.error("jsPDF not loaded.");
+        return;
+    }
+    const pdf = new jsPDFCtor();
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 20;
+    const maxWidth = pageWidth - margin * 2;
+    let y = 20; // vertical starting position
+
+    // helper to print wrapped lines and add pages when necessary
+    function printWrapped(text, x) {
+        if (!text) return;
+        const lines = pdf.splitTextToSize(text, maxWidth);
+        const fontSize = pdf.internal.getFontSize ? pdf.internal.getFontSize() : 12;
+        const lineHeight = fontSize * 1.15; // tuning factor
+        for (const line of lines) {
+            if (y + lineHeight > pageHeight - margin) {
+                pdf.addPage();
+                y = margin;
+            }
+            pdf.text(line, x, y);
+            y += lineHeight;
+        }
+    }
+
+    // Title
+    pdf.setFontSize(20);
+    pdf.text("My Recipes", pageWidth / 2, y, { align: "center" });
+    y += 15;
+    pdf.setFontSize(12);
+
+    (Recipes || []).forEach((recipe, i) => {
+        // Header
+        const header = `Recipe ${i + 1}: ${recipe.title || "Untitled Recipe"}`;
+        pdf.setFontSize(16);
+        printWrapped(header, margin);
+        y += 6; // small gap after header
+        pdf.setFontSize(12);
+
+        printWrapped(`Source: ${recipe.source || "N/A"}`, margin);
+        // no extra y += here
+        printWrapped(`Cook Time: ${recipe.cooktime || "N/A"}`, margin);
+        // no extra y += here
+        printWrapped(`Servings: ${recipe.servings || "N/A"}`, margin);
+        // no extra y += here
+
+        // Ingredients
+        pdf.setFontSize(12);
+        printWrapped("Ingredients:", margin);
+        // do not add manual spacing here
+        if (recipe.ingredients && recipe.ingredients.length) {
+            recipe.ingredients.forEach(ing => {
+                // printWrapped will advance y; no additional y +=
+                printWrapped(`• ${ing}`, margin + 5);
+            });
+        } else {
+            printWrapped("No ingredients listed.", margin + 5);
+        }
+
+        // Instructions (directly after ingredients, no extra spacing)
+        pdf.setFontSize(12);
+        printWrapped("Instructions:", margin);
+        if (recipe.instructions && recipe.instructions.length) {
+            recipe.instructions.forEach((step, idx) => {
+                printWrapped(`${idx + 1}. ${step}`, margin + 5);
+            });
+        } else {
+            printWrapped("No instructions provided.", margin + 5);
+        }
+
+        // Footer
+        printWrapped(`Saved on: ${new Date(recipe.savedAt).toLocaleString()}`, margin);
+
+        // Ensure spacing before next recipe (if needed)
+        if (y > pageHeight - margin && i !== Recipes.length - 1) {
+            pdf.addPage();
+            y = margin;
+        } else {
+            // small separator between recipes
+            y += 8;
+        }
+    });
+
+    pdf.save("recipes.pdf");
+});
+
