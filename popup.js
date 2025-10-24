@@ -11,18 +11,6 @@
     let Recipes = [];
     let recipeString = localStorage.getItem("recipes");
 
-    //Loading saved leads in local storage to the extension UI
-    if(recipeString)
-    {
-        try{
-            Recipes = JSON.parse(recipeString);
-        }catch (e)
-        {
-            console.error("Failed to load saved leads:", e);
-        }
-        DisplayRecipe(Recipes);
-    }
-
 // This function will be injected and executed in the context of the web page.
 const scrapeRecipeFromPage = () => {
         //Recipe Object
@@ -99,55 +87,122 @@ const DisplayRecipe = (recipe) => {
 
     //Querying Container for the recipe info
     const outText = document.querySelector("#recipe");
+
+    // If we received an array of recipes, loop through each
+    const recipes = Array.isArray(recipe) ? recipe : [recipe];
     
-    //Creating recipe title label
-    const outTitle = document.createElement("h2");
-    outTitle.classList = "recipeInfo";
-    outTitle.textContent = recipe.title + " :";
+    // //Creating recipe title label
+    // const outTitle = document.createElement("h2");
+    // outTitle.classList = "recipeInfo";
+    // outTitle.textContent = recipe.title + " :";
     
-    //Creating Total Time to cook label
-    const Time = document.createElement("h2");
-    Time.textContent = `Total Time: ${recipe.cooktime}`;
-    outText.appendChild(outTitle);
-    outText.appendChild(Time);
+    // //Creating Total Time to cook label
+    // const Time = document.createElement("h2");
+    // Time.textContent = `Total Time: ${recipe.cooktime}`;
+    // outText.appendChild(outTitle);
+    // outText.appendChild(Time);
 
-    //Creating ingredients Label
-    const Label = document.createElement("h3");
-    Label.textContent = "Ingredients :"
-    outText.appendChild(Label);
+    // //Creating ingredients Label
+    // const Label = document.createElement("h3");
+    // Label.textContent = "Ingredients :"
+    // outText.appendChild(Label);
 
-    const ulEl = document.createElement("ul");
-    ulEl.classList= "Ingredients";
-    outText.appendChild(ulEl);
+    // const ulEl = document.createElement("ul");
+    // ulEl.classList= "Ingredients";
+    // outText.appendChild(ulEl);
 
-    //createing list of ingredients and displaying 
-    for(let i = 0; i < recipe.ingredients.length; i++)
-    {
-        const outIngredients = document.createElement("li");
-        outIngredients.textContent = recipe.ingredients[i];
-        ulEl.appendChild(outIngredients);
-    }
+    // //createing list of ingredients and displaying 
+    // for(let i = 0; i < recipe.ingredients.length; i++)
+    // {
+    //     const outIngredients = document.createElement("li");
+    //     outIngredients.textContent = recipe.ingredients[i];
+    //     ulEl.appendChild(outIngredients);
+    // }
 
-    //Conatiner for instructions list
-    const div = document.createElement("div");
-    div.classList = "InstructionsDiv";
-    outText.appendChild(div);
+    // //Conatiner for instructions list
+    // const div = document.createElement("div");
+    // div.classList = "InstructionsDiv";
+    // outText.appendChild(div);
 
-    const InstLabel = document.createElement("h3");
-    InstLabel.textContent = "Instructions :"
-    div.appendChild(InstLabel);
+    // const InstLabel = document.createElement("h3");
+    // InstLabel.textContent = "Instructions :"
+    // div.appendChild(InstLabel);
 
-    const InstUl = document.createElement("ul");
-    InstUl.classList= "Instructions";
-    div.appendChild(InstUl);
+    // const InstUl = document.createElement("ul");
+    // InstUl.classList= "Instructions";
+    // div.appendChild(InstUl);
 
-    //Creating the list for instructions
-    for(let i = 0; i < recipe.instructions.length; i++)
-    {
-        const outInstructions = document.createElement("li");
-        outInstructions.innerHTML = `<b>Step ${i+1}:</b> ${recipe.instructions[i]}`;
-        InstUl.appendChild(outInstructions);
-    }
+    // //Creating the list for instructions
+    // for(let i = 0; i < recipe.instructions.length; i++)
+    // {
+    //     const outInstructions = document.createElement("li");
+    //     outInstructions.innerHTML = `<b>Step ${i+1}:</b> ${recipe.instructions[i]}`;
+    //     InstUl.appendChild(outInstructions);
+    // }
+
+     recipes.forEach((recipe) => {
+        // --- Recipe Container ---
+        const recipeDiv = document.createElement("div");
+        recipeDiv.classList.add("recipe-container");
+
+        // --- Recipe Title ---
+        const outTitle = document.createElement("h2");
+        outTitle.classList = "recipeInfo";
+        outTitle.textContent = recipe.title !== "N/A" ? recipe.title : "Untitled Recipe";
+        recipeDiv.appendChild(outTitle);
+
+        // --- Total Time ---
+        const Time = document.createElement("h3");
+        Time.textContent = `Total Time: ${recipe.cooktime || "N/A"}`;
+        recipeDiv.appendChild(Time);
+
+        // --- Ingredients ---
+        const Label = document.createElement("h3");
+        Label.textContent = "Ingredients:";
+        recipeDiv.appendChild(Label);
+
+        const ulEl = document.createElement("ul");
+        ulEl.classList = "Ingredients";
+        recipe.ingredients?.forEach((ingredient) => {
+            const li = document.createElement("li");
+            li.textContent = ingredient;
+            ulEl.appendChild(li);
+        });
+        recipeDiv.appendChild(ulEl);
+
+        // --- Instructions ---
+        const div = document.createElement("div");
+        div.classList = "InstructionsDiv";
+
+        const InstLabel = document.createElement("h3");
+        InstLabel.textContent = "Instructions:";
+        div.appendChild(InstLabel);
+
+        const InstUl = document.createElement("ul");
+        InstUl.classList = "Instructions";
+        recipe.instructions?.forEach((instruction, i) => {
+            const li = document.createElement("li");
+            li.innerHTML = `<b>Step ${i + 1}:</b> ${instruction}`;
+            InstUl.appendChild(li);
+        });
+        div.appendChild(InstUl);
+
+        recipeDiv.appendChild(div);
+
+        // --- Append the recipe container to the main output ---
+        outText.appendChild(recipeDiv);
+    });
 }
     
-
+//Loading saved leads in local storage to the extension UI
+    if(recipeString)
+    {
+        try{
+            Recipes = JSON.parse(recipeString);
+        }catch (e)
+        {
+            Recipes = [];
+            console.error("Failed to load saved leads:", e);
+        }
+        DisplayRecipe(Recipes);
+    }
